@@ -3,9 +3,9 @@ pipeline {
 
   environment {
     REGISTRY   = 'docker.io'
-    IMAGE_NAME = 'sirhipotermia/examen-devops'   
-    HOST_PORT  = '8082'   
-    APP_PORT   = '8080'   
+    IMAGE_NAME = 'tuusuario/examen-devops'   //  ← tu usuario Docker Hub
+    HOST_PORT  = '8082'
+    APP_PORT   = '8080'
     CONTAINER  = 'examen_devops'
   }
 
@@ -16,34 +16,30 @@ pipeline {
   }
 
   stages {
-    /* ------------------------------------------------------------------ */
-    stage('Checkout SCM') {
+
+    stage('Checkout SCM') {
       steps {
-        echo "Clonando repositorio…"
+        echo '🛎️  Clonando repositorio…'
         checkout scm
         sh 'git rev-parse --abbrev-ref HEAD && git log -1 --oneline'
       }
     }
 
-    /* ------------------------------------------------------------------ */
-    stage('Build WAR') {
+    stage('Build WAR') {
       steps {
-        script {
-          echo "Compilando proyecto Maven"
-        }
-        // ‘set -e’ para salir ante primer fallo y ‘set -x’ para log detallado
+        echo '🏗️  Compilando proyecto Maven…'
         sh '''
           set -e -x
           mvn -B clean package -DskipTests
-          ls -lh target | grep .war || true
+          echo "--- WAR generado ---"
+          ls -lh target/*.war
         '''
       }
     }
 
-    /* ------------------------------------------------------------------ */
-    stage('Docker Build') {
+    stage('Docker Build') {
       steps {
-        echo "Construyendo imagen Docker…"
+        echo '🐳  Construyendo imagen Docker…'
         sh '''
           set -e -x
           docker build -t $IMAGE_NAME:${BUILD_NUMBER} .
@@ -51,13 +47,12 @@ pipeline {
       }
     }
 
-    /* ------------------------------------------------------------------ */
-    stage('Docker Push') {
+    stage('Docker Push') {
       steps {
-        echo "Pusheando imagen a DockerHub…"
+        echo '📤  Subiendo imagen a Docker Hub…'
         withCredentials([usernamePassword(credentialsId: 'docker-hub',
-                     usernameVariable: 'DOCKER_USER',
-                     passwordVariable: 'DOCKER_PASS')]) {
+                                          usernameVariable: 'DOCKER_USER',
+                                          passwordVariable: 'DOCKER_PASS')]) {
           sh '''
             set -e -x
             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
@@ -68,17 +63,14 @@ pipeline {
       }
     }
 
-    /* ------------------------------------------------------------------ */
-    stage('Deploy EC2') {
+    stage('Deploy EC2') {
       steps {
-        echo "Desplegando contenedor en la instancia…"
+        echo '🚀  Desplegando contenedor…'
         sh '''
           set -e -x
-          # Detener y eliminar contenedor previo (si existe)
-          docker stop $CONTAINER     || true
-          docker rm   $CONTAINER     || true
+          docker stop $CONTAINER || true
+          docker rm   $CONTAINER || true
 
-          # Levantar nueva versión
           docker run -d --name $CONTAINER --network backend \
             -p $HOST_PORT:$APP_PORT \
             -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/municipalidad_la_florida \
@@ -86,19 +78,19 @@ pipeline {
             -e SPRING_DATASOURCE_PASSWORD=SuperS3cret \
             -e SPRING_PROFILES_ACTIVE=prod \
             $IMAGE_NAME:${BUILD_NUMBER}
-          
+
           docker ps --filter "name=$CONTAINER"
         '''
       }
     }
-  } /* stages */
+  }
 
   post {
     success {
-      echo "Build desplegado correctamente"
+      echo "✅  Build #${BUILD_NUMBER} desplegado: http://<IP_EC2>:$HOST_PORT/usuariosBuild/"
     }
     failure {
-      echo "la build falló. "
+      echo '❌  La build falló. Revisa las etapas anteriores.'
     }
   }
 }
