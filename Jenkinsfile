@@ -24,16 +24,7 @@ pipeline {
       }
     }
 
-    stage('Docker Build') {
-  steps {
-    sh """
-      set -e -x
-      docker build --cpus="0.5" --memory="1g" -t $IMAGE_NAME:${BUILD_NUMBER} .
-    """
-  }
-}
-
-stage('Build WAR') {
+    stage('Build WAR') {
   steps {
     sh '''
       set -e -x
@@ -41,6 +32,17 @@ stage('Build WAR') {
     '''
   }
 }
+
+
+    stage('Docker Build') {
+  steps {
+    sh """
+      set -e -x
+      docker build --memory="1g" -t $IMAGE_NAME:${BUILD_NUMBER} .
+    """
+  }
+}
+
 
     stage('Docker Push') {
       steps {
