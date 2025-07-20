@@ -24,27 +24,23 @@ pipeline {
       }
     }
 
-    stage('Build WAR') {
-      steps {
-        echo 'Compilando proyecto Maven…'
-        sh '''
-          set -e -x
-          mvn -B clean package -DskipTests
-          echo "--- WAR generado ---"
-          ls -lh target/*.war
-        '''
-      }
-    }
-
     stage('Docker Build') {
-      steps {
-        echo 'Construyendo imagen Docker…'
-        sh '''
-          set -e -x
-          docker build -t $IMAGE_NAME:${BUILD_NUMBER} .
-        '''
-      }
-    }
+  steps {
+    sh """
+      set -e -x
+      docker build --cpus="0.5" --memory="1g" -t $IMAGE_NAME:${BUILD_NUMBER} .
+    """
+  }
+}
+
+stage('Build WAR') {
+  steps {
+    sh '''
+      set -e -x
+      MAVEN_OPTS="-Xmx1024m" mvn -T1C -B clean package -DskipTests
+    '''
+  }
+}
 
     stage('Docker Push') {
       steps {
