@@ -29,7 +29,7 @@ pipeline {
     stage('Build WAR') {
       steps {
         script {
-          echo "Compilando proyecto Maven en $(pwd)…"
+          echo "Compilando proyecto Maven"
         }
         // ‘set -e’ para salir ante primer fallo y ‘set -x’ para log detallado
         sh '''
@@ -54,7 +54,7 @@ pipeline {
     /* ------------------------------------------------------------------ */
     stage('Docker Push') {
       steps {
-        echo "📤 Pusheando imagen a Docker Hub…"
+        echo "Pusheando imagen a DockerHub…"
         withCredentials([usernamePassword(credentialsId: 'docker-hub',
                      usernameVariable: 'DOCKER_USER',
                      passwordVariable: 'DOCKER_PASS')]) {
@@ -71,7 +71,7 @@ pipeline {
     /* ------------------------------------------------------------------ */
     stage('Deploy EC2') {
       steps {
-        echo "🚀 Desplegando contenedor en la instancia…"
+        echo "Desplegando contenedor en la instancia…"
         sh '''
           set -e -x
           # Detener y eliminar contenedor previo (si existe)
@@ -95,11 +95,10 @@ pipeline {
 
   post {
     success {
-      echo "Build #${BUILD_NUMBER} desplegado correctamente: http://$BUILD_URL"
-      echo "Tu API debería responder en: http://${env.JENKINS_URL ?: '<IP_EC2>'}:$HOST_PORT/usuariosBuild/"
+      echo "Build desplegado correctamente"
     }
     failure {
-      echo "Build #${BUILD_NUMBER} falló. Revisa las etapas anteriores para detalles."
+      echo "la build falló. "
     }
   }
 }
