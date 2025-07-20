@@ -83,6 +83,12 @@ pipeline {
   }
 
   post {
+     always {
+    // Borra directorios temporales del workspace
+    cleanWs()
+    // Poda imágenes intermedias sin etiqueta
+    sh 'docker system prune -af --filter "until=24h" || true'
+  }
     success {
       echo "Build desplegado"
     }
