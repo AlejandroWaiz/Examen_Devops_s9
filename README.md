@@ -6,3 +6,4 @@ thir retrigger
 5 trigger
 new retrigger after changing to t3
 retrigger with new jenkinsfile
+retrigger adding credentials
