@@ -12,13 +12,13 @@ pipeline {
     stage('Checkout') {
       steps { checkout scm }
     }
-    stage('Build WAR') {
-      steps {
-        dir("$BUILD_DIR") {
-          sh './mvnw -B clean package -DskipTests'   // genera target/usuariosBuild.war
-        }
-      }
+    stage('Build WAR') {
+  steps {
+    dir("$BUILD_DIR") {
+      sh 'mvn -B clean package -DskipTests'
     }
+  }
+}
     stage('Docker Build') {
       steps {
         dir("$BUILD_DIR") {
