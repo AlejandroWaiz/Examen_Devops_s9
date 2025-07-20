@@ -18,7 +18,7 @@ pipeline {
 
     stage('Checkout SCM') {
       steps {
-        echo '🛎️  Clonando repositorio…'
+        echo 'Clonando repositorio…'
         checkout scm
         sh 'git rev-parse --abbrev-ref HEAD && git log -1 --oneline'
       }
@@ -26,7 +26,7 @@ pipeline {
 
     stage('Build WAR') {
       steps {
-        echo '🏗️  Compilando proyecto Maven…'
+        echo 'Compilando proyecto Maven…'
         sh '''
           set -e -x
           mvn -B clean package -DskipTests
@@ -38,7 +38,7 @@ pipeline {
 
     stage('Docker Build') {
       steps {
-        echo '🐳  Construyendo imagen Docker…'
+        echo 'Construyendo imagen Docker…'
         sh '''
           set -e -x
           docker build -t $IMAGE_NAME:${BUILD_NUMBER} .
@@ -48,7 +48,7 @@ pipeline {
 
     stage('Docker Push') {
       steps {
-        echo '📤  Subiendo imagen a Docker Hub…'
+        echo 'Subiendo imagen a Docker Hub…'
         withCredentials([usernamePassword(credentialsId: 'docker-hub',
                                           usernameVariable: 'DOCKER_USER',
                                           passwordVariable: 'DOCKER_PASS')]) {
@@ -64,7 +64,7 @@ pipeline {
 
     stage('Deploy EC2') {
       steps {
-        echo '🚀  Desplegando contenedor…'
+        echo 'Desplegando contenedor…'
         sh '''
           set -e -x
           docker stop $CONTAINER || true
@@ -86,10 +86,10 @@ pipeline {
 
   post {
     success {
-      echo "✅  Build #${BUILD_NUMBER} desplegado: http://<IP_EC2>:$HOST_PORT/usuariosBuild/"
+      echo "Build desplegado"
     }
     failure {
-      echo '❌  La build falló. Revisa las etapas anteriores.'
+      echo 'a build falló'
     }
   }
 }
